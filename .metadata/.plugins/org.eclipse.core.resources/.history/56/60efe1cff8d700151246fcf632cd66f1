@@ -1,0 +1,16 @@
+package isaacjordan.me.FaceRecog;
+
+import org.opencv.core.Core;
+
+public class Recogniser {
+  public static void main(String[] args) {
+    System.out.println("Hello, OpenCV");
+
+    // Load the native library.
+    System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+    
+    Thread t = new Thread(new GrabberShow());
+    t.start();
+    
+  }
+}

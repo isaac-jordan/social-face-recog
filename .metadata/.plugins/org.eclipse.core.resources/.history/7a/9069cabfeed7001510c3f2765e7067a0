@@ -1,0 +1,62 @@
+package isaacjordan.me.FaceRecog;
+
+import java.io.File;
+import java.net.URL;
+import org.bytedeco.javacv.*;
+import org.bytedeco.javacv.FrameGrabber.Exception;
+import org.bytedeco.javacpp.*;
+import org.bytedeco.javacpp.indexer.*;
+import static org.bytedeco.javacpp.opencv_core.*;
+import static org.bytedeco.javacpp.opencv_imgproc.*;
+import static org.bytedeco.javacpp.opencv_calib3d.*;
+import static org.bytedeco.javacpp.opencv_objdetect.*;
+
+public class GrabberShow implements Runnable {
+    //final int INTERVAL=1000;///you may use interval
+    IplImage image;
+    CanvasFrame canvas = new CanvasFrame("Web Cam");
+    public GrabberShow() {
+        canvas.setDefaultCloseOperation(javax.swing.JFrame.EXIT_ON_CLOSE);
+    }
+    @Override
+    public void run() {
+    	FrameGrabber grabber;
+		try {
+			grabber = FrameGrabber.createDefault(0);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        try {
+			grabber.start();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
+        OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
+
+        // FAQ about IplImage and Mat objects from OpenCV:
+        // - For custom raw processing of data, createBuffer() returns an NIO direct
+        //   buffer wrapped around the memory pointed by imageData, and under Android we can
+        //   also use that Buffer with Bitmap.copyPixelsFromBuffer() and copyPixelsToBuffer().
+        // - To get a BufferedImage from an IplImage, or vice versa, we can chain calls to
+        //   Java2DFrameConverter and OpenCVFrameConverter, one after the other.
+        // - Java2DFrameConverter also has static copy() methods that we can use to transfer
+        //   data more directly between BufferedImage and IplImage or Mat via Frame objects.
+        IplImage grabbedImage = converter.convert(grabber.grab());
+        int width  = grabbedImage.width();
+        int height = grabbedImage.height();
+        IplImage grayImage    = IplImage.create(width, height, IPL_DEPTH_8U, 1);
+        IplImage rotatedImage = grabbedImage.clone();
+    }
+
+
+
+  public static void main(String[] args) {
+        GrabberShow gs = new GrabberShow();
+        Thread th = new Thread(gs);
+        th.start();
+    }
+}
+

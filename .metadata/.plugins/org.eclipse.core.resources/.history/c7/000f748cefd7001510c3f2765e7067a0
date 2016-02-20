@@ -1,0 +1,11 @@
+package isaacjordan.me.FaceRecog;
+
+public class Recogniser {
+  public static void main(String[] args) {
+    System.out.println("Hello, OpenCV");
+
+    // Load the native library.
+    System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+    new DetectFaceDemo().run();
+  }
+}

@@ -1,0 +1,10 @@
+package isaacjordan.me.FaceRecog;
+
+public class GenerateFaces {
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+
+	}
+
+}
