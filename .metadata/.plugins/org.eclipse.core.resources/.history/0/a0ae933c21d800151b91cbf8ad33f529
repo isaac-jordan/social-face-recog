@@ -1,0 +1,9 @@
+package isaacjordan.me.FaceRecog.Predict;
+
+public class Recogniser {
+  public static void main(String[] args) {
+    Thread t = new Thread(new GrabberShow());
+    t.start();
+    
+  }
+}
