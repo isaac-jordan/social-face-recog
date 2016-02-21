@@ -12,7 +12,7 @@ import twitter4j.Twitter;
 
 
 public class GitHubFeed implements SocialFeed {
-	
+	private static final long serialVersionUID = 2612602669245273846L;
 	GitHub github = null;
 	String username;
 	List<Post> latestPost;
@@ -21,12 +21,12 @@ public class GitHubFeed implements SocialFeed {
 		this.username = username;
 		latestPost = new ArrayList<Post>();	
 	}
-		
 	
 	@Override
 	public void updateLatestPosts() {
-		try {
-			GitHub github = GitHub.connect();
+		// Commented out due to missing libraries
+		/*try {
+			github = GitHub.connect();
 		} catch (IOException e) {
 			System.out.println(e);
 		}
@@ -34,7 +34,7 @@ public class GitHubFeed implements SocialFeed {
 		GHUserSearchBuilder results = search.repos(username);
 		Post post = new Post();
 		post.summary = results.toString();
-		latestPost.add(post);	
+		latestPost.add(post);*/
 	}
 	@Override
 	public String getUsername() {
@@ -43,6 +43,18 @@ public class GitHubFeed implements SocialFeed {
 	@Override
 	public List<Post> getLatestPosts() {
 		return latestPost;
+	}
+
+	@Override
+	public int getFollowerCount() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public int getFollowingCount() {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 	
 }
