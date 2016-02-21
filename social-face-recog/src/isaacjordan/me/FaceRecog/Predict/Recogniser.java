@@ -11,10 +11,16 @@ import static org.bytedeco.javacpp.opencv_imgproc.equalizeHist;
 import static org.bytedeco.javacpp.opencv_imgproc.putText;
 import static org.bytedeco.javacpp.opencv_imgproc.rectangle;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.nio.IntBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -42,6 +48,7 @@ public class Recogniser implements Runnable {
 	Map<Integer, String> idToName;
 
 	public Recogniser() {
+						
 		String trainingDir = "images";
 		File root = new File(trainingDir);
 
@@ -87,6 +94,31 @@ public class Recogniser implements Runnable {
 	
 	@Override
 	public void run() {
+		
+		List<String> necessary_names = new ArrayList<String>();
+		File conf = new File("names.conf");
+		BufferedReader reader = null;
+		try {
+		    reader = new BufferedReader(new FileReader(conf));
+		    String text = null;
+		    while ((text = reader.readLine()) != null) {
+		    	necessary_names.add(text);
+		    }
+		} catch (FileNotFoundException e) {
+		    e.printStackTrace();
+		} catch (IOException e) {
+		    e.printStackTrace();
+		} finally {
+		    try {
+		        if (reader != null) {
+		            reader.close();
+		        }
+		    } catch (IOException e) {
+		    }
+		}
+		
+		
+		
 		// Preload the opencv_objdetect module to work around a known bug.
 		Loader.load(opencv_objdetect.class);
 		
@@ -145,6 +177,9 @@ public class Recogniser implements Runnable {
 	            // At this point you have the position of the faces in
 	            // faces. Now we'll get the faces, make a prediction and
 	            // annotate it in the video. Cool or what?
+	            
+	            List<String> recognised = new ArrayList<String>();	            
+	            
 	            for (int i = 0; i < faces.size(); i++) {
 	                Rect face_i = faces.get(i);
 
@@ -175,7 +210,9 @@ public class Recogniser implements Runnable {
 	                	box_text = "HACKER";
 	                } else {
 	                	box_text = idToName.get(prediction);
+	                	recognised.add(box_text);
 	                }
+	                
 	                
 	                // Calculate the position for annotated text (make sure we don't
 	                // put illegal values in there):
@@ -187,6 +224,19 @@ public class Recogniser implements Runnable {
 	                        FONT_HERSHEY_PLAIN, 1.0, new Scalar(0, 255, 0, 2.0));
 	                
 	            }
+	            
+	            int number_required = necessary_names.size();
+	            int number_got = 0;
+	            
+	            for (String rec_name : recognised) {
+	            	if (necessary_names.contains(rec_name)) {
+	            		number_got++;
+	            	}
+	            }
+	            if (number_required == number_got) {
+	            	System.out.println("Success");
+	            }
+	            
 	            
 	            putText(videoMat, "FPS: " + fpsCounter.getFrameRate(), new Point(25, 25),
                         FONT_HERSHEY_PLAIN, 1.0, new Scalar(0, 255, 0, 2.0));
