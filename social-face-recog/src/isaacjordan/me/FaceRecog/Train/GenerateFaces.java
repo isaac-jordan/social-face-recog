@@ -1,13 +1,25 @@
 package isaacjordan.me.FaceRecog.Train;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 import org.bytedeco.javacv.*;
 import org.bytedeco.javacv.FrameGrabber.Exception;
+
+import isaacjordan.me.FaceRecog.GitHubFeed;
+import isaacjordan.me.FaceRecog.SocialFeed;
+import isaacjordan.me.FaceRecog.TwitterFeed;
+
 import org.bytedeco.javacpp.*;
 import org.bytedeco.javacpp.opencv_face.FaceRecognizer;
 import org.bytedeco.javacpp.indexer.*;
@@ -26,14 +38,75 @@ import static org.bytedeco.javacpp.opencv_imgcodecs.*;
 class FaceGrabber implements Runnable {
 	final int INTERVAL=20;
 	IplImage image;
+	Map<Integer, Map<String, SocialFeed>> idToSocialFeeds = null;
+	Scanner scanner;
+	
 	//CanvasFrame canvas = new CanvasFrame("Web Cam");
 
 	public FaceGrabber() {
-		//canvas.setDefaultCloseOperation(javax.swing.JFrame.EXIT_ON_CLOSE);
+		readSocialFeedMapFromFile();
+		if (idToSocialFeeds == null)
+			idToSocialFeeds = new HashMap<>();
+	}
+	
+	private void gatherSocialFeeds(int userid) {
+		System.out.println("Twitter username? Type 'null' to skip.");
+		String username=scanner.nextLine();
+		if (!username.equals("null"))
+			idToSocialFeeds.get(userid).put("twitter", new TwitterFeed(username));
+		
+		System.out.println("GitHub username? Type 'null' to skip.");
+		username=scanner.nextLine();
+		if (!username.equals("null"))
+			idToSocialFeeds.get(userid).put("github", new GitHubFeed(username));
+		System.out.println("Finished gathering social feeds.");
+	}
+	
+	private void readSocialFeedMapFromFile() {
+		FileInputStream fis;
+		try {
+			fis = new FileInputStream("socialfeeds.ser");
+			ObjectInputStream ois = new ObjectInputStream(fis);
+	        idToSocialFeeds = (Map<Integer, Map<String, SocialFeed>>) ois.readObject();
+	        ois.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
+	}
+	
+	private Map<String, SocialFeed> getOrAddNewUserFeed(int userid) {
+		if (idToSocialFeeds.get(userid) != null) {
+			return idToSocialFeeds.get(userid);
+		}
+		HashMap<String, SocialFeed> newFeedMap = new HashMap<>();
+		idToSocialFeeds.put(userid, newFeedMap);
+		return newFeedMap;
+	}
+	
+	private void writeFeedDetailsToFile() {
+		FileOutputStream fos;
+		try {
+			fos = new FileOutputStream("socialfeeds.ser");
+			ObjectOutputStream oos = new ObjectOutputStream(fos);
+	        oos.writeObject(idToSocialFeeds);
+	        oos.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void run() {
-		Scanner scanner = new Scanner(System.in);
+		scanner = new Scanner(System.in);
         int id;
         String name;
         System.out.println("Enter user id:");
@@ -41,7 +114,11 @@ class FaceGrabber implements Runnable {
         scanner.nextLine(); //This is needed to pick up the new line
         System.out.println("Enter user name:");
         name=scanner.nextLine();
-        scanner.close();
+        
+        getOrAddNewUserFeed(id);
+        
+        gatherSocialFeeds(id);
+        writeFeedDetailsToFile();
 		String classifierName = null;
 		URL url = null;
 		try {
@@ -71,6 +148,9 @@ class FaceGrabber implements Runnable {
 			System.err.println("Error loading classifier file \"" + classifierName + "\".");
 			System.exit(1);
 		}
+		
+		System.out.println("Press enter to begin frame capture.");
+        scanner.nextLine();
 
 		// The available FrameGrabber classes include OpenCVFrameGrabber
 		// (opencv_videoio),
@@ -135,7 +215,8 @@ class FaceGrabber implements Runnable {
 		
 		int count = 0;
 		int framecounter = 0;
-		Size newImageSize = new Size(250,250); 
+		Size newImageSize = new Size(250,250);
+		
 		System.out.println(String.format("Taking screenshot every %d frames.", INTERVAL));
 		try {
 			while (frame.isVisible() && (grabbedImage = converter.convert(grabber.grab())) != null) {
@@ -187,7 +268,7 @@ class FaceGrabber implements Runnable {
 					}
 					
 					grabber.stop();
-					Thread.sleep(300);
+					Thread.sleep(75);
 					grabber.restart();
 					framecounter = 0;
 				}
@@ -204,7 +285,7 @@ class FaceGrabber implements Runnable {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+        scanner.close();
 	}
 }
 
