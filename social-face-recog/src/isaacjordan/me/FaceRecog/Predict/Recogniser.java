@@ -262,8 +262,28 @@ public class Recogniser implements Runnable {
 	                putText(videoMat, box_text, new Point(pos_x, pos_y),
 	                        FONT_HERSHEY_PLAIN, 1.0, new Scalar(0, 255, 0, 2.0));
 	                
-	                putText(videoMat, latestTweet, new Point(pos_x - 20, pos_y - 20),
-	                        FONT_HERSHEY_PLAIN, 1.0, new Scalar(0, 255, 0, 2.0));
+	                List<String> lines_of_tweets = new ArrayList<String>();
+	                String line = "";
+	                StringBuilder sb = new StringBuilder(line);
+	                int char_counter = 0;
+	                int lines_counter = 0;
+	                for (char single_char : latestTweet.toCharArray()) {
+	                	if (char_counter > 40 && single_char == ' ') {
+	                		lines_of_tweets.set(lines_counter, sb.toString());
+	                		char_counter = 0;
+	                		lines_counter++;
+	                	} else {
+		                	sb.append(single_char);	
+	                	}
+	                }
+	                int new_line = 0;
+	                for (String tweet_line : lines_of_tweets) {
+	                	putText(videoMat, tweet_line, new Point(pos_x + face_i.width() + 10, pos_y + 25 + new_line),
+		                        FONT_HERSHEY_PLAIN, 1.0, new Scalar(0, 255, 0, 2.0));
+	                	new_line += 20;
+	                }
+	                
+	                
 	                
 	            }
 	            
