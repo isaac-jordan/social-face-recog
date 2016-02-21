@@ -147,7 +147,6 @@ public class Recogniser implements Runnable {
 		
 		List<Scalar> list_of_colours = new ArrayList<Scalar>();
 		list_of_colours.add( new Scalar (255,0,0,1) );
-		list_of_colours.add( new Scalar (0,255,0,1) );
 		list_of_colours.add( new Scalar (0,0,255,1) );
 		list_of_colours.add( new Scalar (255,255,0,1) );
 		list_of_colours.add( new Scalar (255,0,255,1) );
@@ -155,7 +154,8 @@ public class Recogniser implements Runnable {
 		list_of_colours.add( new Scalar (255,20,147,1) );
 		list_of_colours.add( new Scalar (255,193,37,1) );
 		list_of_colours.add( new Scalar (0,190,240,1) );
-		list_of_colours.add( new Scalar (12,255,30,1) );
+		list_of_colours.add( new Scalar (124,255,30,1) );
+		list_of_colours.add( new Scalar (20,255,148,1) );
 				
 		// Preload the opencv_objdetect module to work around a known bug.
 		Loader.load(opencv_objdetect.class);
@@ -226,7 +226,7 @@ public class Recogniser implements Runnable {
 	            for (int i = 0; i < faces.size(); i++) {
 	            	int j = i%10;
 	                Rect face_i = faces.get(i);
-
+	                
 	                Mat face = new Mat(videoMatGray, face_i);
 	                // If fisher face recognizer is used, the face need to be
 	                // resized.
@@ -299,9 +299,6 @@ public class Recogniser implements Runnable {
 		                        FONT_HERSHEY_PLAIN, 1.0, list_of_colours.get(j));
 	                	new_line += 20;
 	                }
-	                
-	                
-	                
 	            }
 	            
 	            int number_required = necessary_names.size();
@@ -314,7 +311,7 @@ public class Recogniser implements Runnable {
 	            }
 	            if (number_required == number_got) {
 	            	System.out.println("Success");
-	            	break;
+	            	rectangle(videoMat, new Point(15, 15), new Point(videoMat.size().width() - 15, videoMat.size().height() - 15), (0, 255, 0, 255), 3); 
 	            }
 	            
 	            
