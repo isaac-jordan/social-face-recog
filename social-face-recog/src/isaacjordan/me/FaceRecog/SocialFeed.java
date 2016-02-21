@@ -9,4 +9,8 @@ public interface SocialFeed extends Serializable {
 	public String getUsername();
 	
 	public List<Post> getLatestPosts();
+	
+	public int getFollowerCount();
+	
+	public int getFollowingCount();
 }

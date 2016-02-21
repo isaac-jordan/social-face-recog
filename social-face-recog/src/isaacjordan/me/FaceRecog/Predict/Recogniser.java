@@ -325,7 +325,7 @@ public class Recogniser implements Runnable {
 	            }
 	            if (number_required == number_got) {
 	            	System.out.println("Success");
-	            	rectangle(videoMat, new Point(15, 15), new Point(videoMat.size().width() - 15, videoMat.size().height() - 15), (0, 255, 0, 255), 3); 
+	            	rectangle(resizedVideoMat, new Point(15, 15), new Point(resizedVideoMat.size().width() - 15, resizedVideoMat.size().height() - 15), new Scalar(0, 255, 0, 3)); 
 	            }
 	            
 	            

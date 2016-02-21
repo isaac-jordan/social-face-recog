@@ -52,6 +52,18 @@ public class TwitterFeed implements SocialFeed {
 	public List<Post> getLatestPosts() {
 		return latestPosts;
 	}
+
+	@Override
+	public int getFollowerCount() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public int getFollowingCount() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 	
 	
 }
