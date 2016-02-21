@@ -144,6 +144,18 @@ public class Recogniser implements Runnable {
 		    } catch (IOException e) {
 		    }
 		}
+		
+		List<Scalar> list_of_colours = new ArrayList<Scalar>();
+		list_of_colours.add( new Scalar (255,0,0,1) );
+		list_of_colours.add( new Scalar (0,255,0,1) );
+		list_of_colours.add( new Scalar (0,0,255,1) );
+		list_of_colours.add( new Scalar (255,255,0,1) );
+		list_of_colours.add( new Scalar (255,0,255,1) );
+		list_of_colours.add( new Scalar (0,255,255,1) );
+		list_of_colours.add( new Scalar (255,20,147,1) );
+		list_of_colours.add( new Scalar (255,193,37,1) );
+		list_of_colours.add( new Scalar (0,190,240,1) );
+		list_of_colours.add( new Scalar (12,255,30,1) );
 				
 		// Preload the opencv_objdetect module to work around a known bug.
 		Loader.load(opencv_objdetect.class);
@@ -212,6 +224,7 @@ public class Recogniser implements Runnable {
 	            List<String> recognised = new ArrayList<String>();	            
 	            
 	            for (int i = 0; i < faces.size(); i++) {
+	            	int j = i%10;
 	                Rect face_i = faces.get(i);
 
 	                Mat face = new Mat(videoMatGray, face_i);
@@ -233,7 +246,7 @@ public class Recogniser implements Runnable {
 
 	                // And finally write all we've found out to the original image!
 	                // First of all draw a green rectangle around the detected face:
-	                rectangle(videoMat, face_i, new Scalar(0, 255, 0, 1));
+	                rectangle(videoMat, face_i, list_of_colours.get(j));
 
 	                // Create the text we will annotate the box with:
 	                String box_text = null;
@@ -260,7 +273,7 @@ public class Recogniser implements Runnable {
 	                
 	                // And now put it into the image:
 	                putText(videoMat, box_text, new Point(pos_x, pos_y),
-	                        FONT_HERSHEY_PLAIN, 1.0, new Scalar(0, 255, 0, 2.0));
+	                        FONT_HERSHEY_PLAIN, 1.0, list_of_colours.get(j));
 	                
 	                List<String> lines_of_tweets = new ArrayList<String>();
 	                String line = "";
@@ -283,7 +296,7 @@ public class Recogniser implements Runnable {
 	                
 	                for (String tweet_line : lines_of_tweets) {
 	                	putText(videoMat, tweet_line, new Point(pos_x + face_i.width() + 14, pos_y + 25 + new_line),
-		                        FONT_HERSHEY_PLAIN, 1.0, new Scalar(0, 255, 0, 2.0));
+		                        FONT_HERSHEY_PLAIN, 1.0, list_of_colours.get(j));
 	                	new_line += 20;
 	                }
 	                
