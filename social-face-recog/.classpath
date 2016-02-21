@@ -3,7 +3,7 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/JavaCV"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Twitter4J"/>
-	<classpathentry kind="lib" path="/home/isaac/Workspace/social-face-recog/social-face-recog/lib/org.eclipse.egit.github.core-2.1.5.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/twitter4j"/>
+	<classpathentry kind="lib" path="C:/Users/Ben/Documents/github-api-1.72.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
