@@ -12,7 +12,11 @@ import static org.bytedeco.javacpp.opencv_imgproc.putText;
 import static org.bytedeco.javacpp.opencv_imgproc.rectangle;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.nio.IntBuffer;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,12 +38,17 @@ import org.bytedeco.javacv.CanvasFrame;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.FrameGrabber.Exception;
+
+import isaacjordan.me.FaceRecog.SocialFeed;
+import isaacjordan.me.FaceRecog.TwitterFeed;
+
 import org.bytedeco.javacv.OpenCVFrameConverter;
+import org.bytedeco.javacv.OpenCVFrameGrabber;
 
 public class Recogniser implements Runnable {
-	IplImage image;
 	FaceRecognizer faceRecognizer;
 	Map<Integer, String> idToName;
+	Map<Integer, Map<String, SocialFeed>> idToSocialFeeds;
 
 	public Recogniser() {
 		String trainingDir = "images";
@@ -57,6 +66,8 @@ public class Recogniser implements Runnable {
 		MatVector images = new MatVector(imageFiles.length);
 
 		Mat labels = new Mat(imageFiles.length, 1, CV_32SC1);
+		
+		@SuppressWarnings("deprecation")
 		IntBuffer labelsBuf = labels.getIntBuffer();
 
 		int counter = 0;
@@ -79,10 +90,29 @@ public class Recogniser implements Runnable {
 		// faceRecognizer = createEigenFaceRecognizer();
 		faceRecognizer = createLBPHFaceRecognizer();
 
-		System.out.println("Training face rocognizer.");
+		System.out.println("Training face recogniser.");
 		faceRecognizer.train(images, labels);
 		System.out.println("Finished training.");
-
+	}
+	
+	private void readSocialFeedMapFromFile() {
+		FileInputStream fis;
+		try {
+			fis = new FileInputStream("socialfeeds.ser");
+			ObjectInputStream ois = new ObjectInputStream(fis);
+	        idToSocialFeeds = (Map<Integer, Map<String, SocialFeed>>) ois.readObject();
+	        ois.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
 	}
 	
 	@Override
@@ -96,12 +126,20 @@ public class Recogniser implements Runnable {
 		// PS3EyeFrameGrabber, VideoInputFrameGrabber, and FFmpegFrameGrabber.
 		FrameGrabber grabber = null;
 		try {
-			grabber = FrameGrabber.createDefault(0);
+			grabber = OpenCVFrameGrabber.createDefault(0);
 			grabber.start();
 		} catch (FrameGrabber.Exception e) {
 			// TODO Auto-generated catch block
 			System.err.println("FrameGrabber Exception!");
 			e.printStackTrace();
+		}
+		
+		readSocialFeedMapFromFile();
+		
+		for (int userid : idToSocialFeeds.keySet()) {
+			for (SocialFeed feed : idToSocialFeeds.get(userid).values()) {
+				feed.updateLatestPosts();
+			}
 		}
 		
 
@@ -117,7 +155,7 @@ public class Recogniser implements Runnable {
 		// screenNumber.
 		// We should also specify the relative monitor/camera response for
 		// proper gamma correction.
-		CanvasFrame frame = new CanvasFrame("Face File Generator", CanvasFrame.getDefaultGamma() / grabber.getGamma());
+		CanvasFrame frame = new CanvasFrame("Facial Recogniser", CanvasFrame.getDefaultGamma() / grabber.getGamma());
 		
 		Frame videoFrame;
 		Mat videoMat = new Mat();
@@ -128,9 +166,6 @@ public class Recogniser implements Runnable {
 		
 		try {
 			while (frame.isVisible() && (videoFrame = grabber.grab()) != null) {
-				//Record the time before update and draw
-		        long beforeTime = System.nanoTime();
-		        
 	            videoMat = converterToMat.convert(videoFrame);
 	            Mat videoMatGray = new Mat();
 	            // Convert the current frame to grayscale:
@@ -171,11 +206,20 @@ public class Recogniser implements Runnable {
 
 	                // Create the text we will annotate the box with:
 	                String box_text = null;
+	                String latestTweet = "";
 	                if (prediction == -1 || distance > 60) {
 	                	box_text = "HACKER";
 	                } else {
 	                	box_text = idToName.get(prediction);
+	                	Map<String, SocialFeed> socialFeeds = idToSocialFeeds.get(prediction);
+	                	if (socialFeeds != null) {
+	                		TwitterFeed feed = (TwitterFeed) socialFeeds.get("twitter");
+	                		if (feed != null) {
+	                			latestTweet = feed.getLatestPosts().get(0).getSummary();
+	                		}
+	                	}
 	                }
+	                
 	                
 	                // Calculate the position for annotated text (make sure we don't
 	                // put illegal values in there):
@@ -184,6 +228,9 @@ public class Recogniser implements Runnable {
 	                
 	                // And now put it into the image:
 	                putText(videoMat, box_text, new Point(pos_x, pos_y),
+	                        FONT_HERSHEY_PLAIN, 1.0, new Scalar(0, 255, 0, 2.0));
+	                
+	                putText(videoMat, latestTweet, new Point(pos_x - 20, pos_y - 20),
 	                        FONT_HERSHEY_PLAIN, 1.0, new Scalar(0, 255, 0, 2.0));
 	                
 	            }
