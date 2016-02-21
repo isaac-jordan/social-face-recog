@@ -70,13 +70,10 @@ class FaceGrabber implements Runnable {
 	        idToSocialFeeds = (Map<Integer, Map<String, SocialFeed>>) ois.readObject();
 	        ois.close();
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("No existing social feed files found. A new one will be created.");
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
         

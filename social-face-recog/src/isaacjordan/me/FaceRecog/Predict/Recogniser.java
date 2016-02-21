@@ -28,6 +28,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import org.bytedeco.javacpp.Loader;
+import org.bytedeco.javacpp.opencv_core;
 import org.bytedeco.javacpp.opencv_core.IplImage;
 import org.bytedeco.javacpp.opencv_core.Mat;
 import org.bytedeco.javacpp.opencv_core.MatVector;
@@ -39,6 +40,9 @@ import org.bytedeco.javacpp.opencv_face.FaceRecognizer;
 import org.bytedeco.javacpp.opencv_objdetect;
 import org.bytedeco.javacpp.opencv_objdetect.CascadeClassifier;
 import org.bytedeco.javacv.CanvasFrame;
+import org.bytedeco.javacv.DC1394FrameGrabber;
+import org.bytedeco.javacv.FFmpegFrameGrabber;
+import org.bytedeco.javacv.FlyCaptureFrameGrabber;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.FrameGrabber.Exception;
@@ -48,6 +52,10 @@ import isaacjordan.me.FaceRecog.TwitterFeed;
 
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameGrabber;
+import org.bytedeco.javacv.VideoInputFrameGrabber;
+
+import org.bytedeco.javacpp.helper.opencv_imgproc.*;
+import static org.bytedeco.javacpp.opencv_imgproc.*;
 
 public class Recogniser implements Runnable {
 	FaceRecognizer faceRecognizer;
@@ -166,7 +174,7 @@ public class Recogniser implements Runnable {
 		// PS3EyeFrameGrabber, VideoInputFrameGrabber, and FFmpegFrameGrabber.
 		FrameGrabber grabber = null;
 		try {
-			grabber = OpenCVFrameGrabber.createDefault(0);
+			grabber = FrameGrabber.createDefault(0);
 			grabber.start();
 		} catch (FrameGrabber.Exception e) {
 			// TODO Auto-generated catch block
@@ -207,6 +215,7 @@ public class Recogniser implements Runnable {
 		try {
 			while (frame.isVisible() && (videoFrame = grabber.grab()) != null) {
 	            videoMat = converterToMat.convert(videoFrame);
+	            
 	            Mat videoMatGray = new Mat();
 	            // Convert the current frame to grayscale:
 	            cvtColor(videoMat, videoMatGray, COLOR_BGRA2GRAY);
@@ -221,10 +230,11 @@ public class Recogniser implements Runnable {
 	            // faces. Now we'll get the faces, make a prediction and
 	            // annotate it in the video. Cool or what?
 	            
+	            Mat resizedVideoMat = videoMat.clone();
+	            resize(resizedVideoMat, resizedVideoMat, new opencv_core.Size(1280, 960));
 	            List<String> recognised = new ArrayList<String>();	            
 	            
 	            for (int i = 0; i < faces.size(); i++) {
-	            	int j = i%10;
 	                Rect face_i = faces.get(i);
 
 	                Mat face = new Mat(videoMatGray, face_i);
@@ -244,15 +254,12 @@ public class Recogniser implements Runnable {
 		            int prediction = plabel[0];
 		            double distance = pconfidence[0];
 
-	                // And finally write all we've found out to the original image!
-	                // First of all draw a green rectangle around the detected face:
-	                rectangle(videoMat, face_i, list_of_colours.get(j));
-
 	                // Create the text we will annotate the box with:
 	                String box_text = null;
 	                String latestTweet = "";
 	                if (prediction == -1 || distance > 60) {
 	                	box_text = "HACKER";
+	                	prediction = 0;
 	                } else {
 	                	box_text = idToName.get(prediction);
 	                	Map<String, SocialFeed> socialFeeds = idToSocialFeeds.get(prediction);
@@ -265,6 +272,13 @@ public class Recogniser implements Runnable {
 	                	recognised.add(box_text);
 	                }
 	                
+	                int j = prediction % 10;
+	                
+	                // And finally write all we've found out to the original image!
+	                // First of all draw a green rectangle around the detected face:
+	                face_i = new Rect(face_i.x() * 2, face_i.y() * 2, face_i.width() * 2, face_i.height() * 2);
+	                rectangle(resizedVideoMat, face_i, list_of_colours.get(j));
+	                
 	                
 	                // Calculate the position for annotated text (make sure we don't
 	                // put illegal values in there):
@@ -272,7 +286,7 @@ public class Recogniser implements Runnable {
 	                int pos_y = Math.max(face_i.tl().y() - 10, 0);
 	                
 	                // And now put it into the image:
-	                putText(videoMat, box_text, new Point(pos_x, pos_y),
+	                putText(resizedVideoMat, box_text, new Point(pos_x, pos_y),
 	                        FONT_HERSHEY_PLAIN, 1.0, list_of_colours.get(j));
 	                
 	                List<String> lines_of_tweets = new ArrayList<String>();
@@ -295,13 +309,10 @@ public class Recogniser implements Runnable {
 	                int new_line = 0;
 	                
 	                for (String tweet_line : lines_of_tweets) {
-	                	putText(videoMat, tweet_line, new Point(pos_x + face_i.width() + 14, pos_y + 25 + new_line),
-		                        FONT_HERSHEY_PLAIN, 1.0, list_of_colours.get(j));
+	                	putText(resizedVideoMat, tweet_line, new Point(pos_x + face_i.width() + 14, pos_y + 25 + new_line),
+		                        FONT_HERSHEY_PLAIN, 1, list_of_colours.get(j));
 	                	new_line += 20;
 	                }
-	                
-	                
-	                
 	            }
 	            
 	            int number_required = necessary_names.size();
@@ -318,11 +329,12 @@ public class Recogniser implements Runnable {
 	            }
 	            
 	            
-	            putText(videoMat, "FPS: " + fpsCounter.getFrameRate(), new Point(25, 25),
+	            putText(resizedVideoMat, "FPS: " + fpsCounter.getFrameRate(), new Point(25, 25),
                         FONT_HERSHEY_PLAIN, 1.0, new Scalar(0, 255, 0, 2.0));
 	            
 	            // Show the result:
-	            IplImage image = new IplImage(videoMat);
+	            
+	            IplImage image = new IplImage(resizedVideoMat);
 	            Frame convertedFrame = converter.convert(image);
 				frame.showImage(convertedFrame);
 				fpsCounter.submitReading();
