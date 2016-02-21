@@ -1,9 +1,15 @@
 package isaacjordan.me.FaceRecog;
 
+
 import java.util.List;
 
+import org.eclipse.egit.github.core.client.GitHubClient;
+
+
 public class GitHubFeed implements SocialFeed {
+	private static final long serialVersionUID = -767532415720538684L;
 	String username;
+	List<Post> latestPosts = null;
 	
 	public GitHubFeed(String username) {
 		this.username = username;
@@ -11,14 +17,11 @@ public class GitHubFeed implements SocialFeed {
 
 	@Override
 	public void updateLatestPosts() {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public String getUsername() {
-		// TODO Auto-generated method stub
-		return null;
+		return username;
 	}
 
 	@Override

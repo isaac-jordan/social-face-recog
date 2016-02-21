@@ -22,16 +22,12 @@ public class TwitterFeed implements SocialFeed {
 
 	@Override
 	public void updateLatestPosts() {
-		// TODO Auto-generated method stub
 		twitter = TwitterFactory.getSingleton();
 		Paging paging = new Paging(1, 5);
 		List<Status> statuses = null;
 		try {
-			System.out.println("USERNAME: " + username);
 			statuses = twitter.getUserTimeline(username, paging);
-			System.out.println(statuses);
 		} catch (TwitterException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		

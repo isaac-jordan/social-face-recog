@@ -266,19 +266,23 @@ public class Recogniser implements Runnable {
 	                String line = "";
 	                StringBuilder sb = new StringBuilder(line);
 	                int char_counter = 0;
-	                int lines_counter = 0;
 	                for (char single_char : latestTweet.toCharArray()) {
-	                	if (char_counter > 40 && single_char == ' ') {
-	                		lines_of_tweets.set(lines_counter, sb.toString());
+	                	if (char_counter > 20 && (single_char == ' ' || single_char == '.') || char_counter > 35) {
+	                		lines_of_tweets.add(sb.toString());
+	                		sb = new StringBuilder(line);
 	                		char_counter = 0;
-	                		lines_counter++;
 	                	} else {
 		                	sb.append(single_char);	
 	                	}
+	                	char_counter++;
+	                }
+	                if (sb.length() > 0) {
+	                	lines_of_tweets.add(sb.toString());
 	                }
 	                int new_line = 0;
+	                
 	                for (String tweet_line : lines_of_tweets) {
-	                	putText(videoMat, tweet_line, new Point(pos_x + face_i.width() + 10, pos_y + 25 + new_line),
+	                	putText(videoMat, tweet_line, new Point(pos_x + face_i.width() + 14, pos_y + 25 + new_line),
 		                        FONT_HERSHEY_PLAIN, 1.0, new Scalar(0, 255, 0, 2.0));
 	                	new_line += 20;
 	                }
@@ -297,6 +301,7 @@ public class Recogniser implements Runnable {
 	            }
 	            if (number_required == number_got) {
 	            	System.out.println("Success");
+	            	break;
 	            }
 	            
 	            
