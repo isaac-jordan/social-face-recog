@@ -1,5 +1,7 @@
 # Social Face Recogniser
-Built at St Andrews University Hackathon 2016
+Built at St Andrews University Hackathon 2016.
+
+There is a demonstration available on YouTube [here](https://www.youtube.com/watch?v=tSztEQt3VQE).
 
 ## Inspiration
 Originally intended to be an Oculus Rift application, Social Face Recogniser uses computer vision technology to first identify that faces exist, and then recognise who those faces are.
